@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// ✅ PERBAIKAN DETEKSI VERCEL: Gunakan getenv('VERCEL') agar pasti terbaca server
+// [1] PANDUAN VERCEL: Siapkan folder /tmp di awal sebelum sistem Laravel berjalan
 if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) {
     $required_directories = [
         '/tmp/framework/views',
@@ -18,6 +18,7 @@ if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) 
     }
 }
 
+// [2] Konfigurasi utama aplikasi
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -25,18 +26,27 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        
-        // 🔥 PERBAIKAN KAMU: Webhook Midtrans bebas CSRF
+        // Jalur Webhook Midtrans bebas CSRF
         $middleware->validateCsrfTokens(except: [
             'midtrans/webhook'
         ]);
-
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        
+        // 🔥 TRICK DEBUGGING FINAL: Bongkar eror asli tanpa memanggil komponen 'view'
+        $exceptions->render(function (\Throwable $e) {
+            if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL'])) {
+                return new \Symfony\Component\HttpFoundation\Response(
+                    "BIANG KEROK BERHASIL DIBONGKAR! -> EROR ASLI: " . $e->getMessage() . " | Lokasi File: " . $e->getFile() . " (Lini: " . $e->getLine() . ")",
+                    500,
+                    ['Content-Type' => 'text/plain; charset=UTF-8']
+                );
+            }
+        });
+
     })->create();
 
-// ✅ Pindahkan storage path utama ke /tmp jika terdeteksi di lingkungan Vercel
+// [3] Alihkan jalur utama storage ke /tmp jika di Vercel
 if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) {
     $app->useStoragePath('/tmp');
 }
