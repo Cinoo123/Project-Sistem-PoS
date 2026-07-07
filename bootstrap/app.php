@@ -26,6 +26,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        
+        // ✅ SOLUSI UNTUK LAYAR PERINGATAN BROWSER:
+        // Paksa Laravel memercayai jembatan proxy SSL Vercel agar semua rute otomatis dikonversi ke HTTPS aman
+        $middleware->trustProxies(at: '*');
+
         // Jalur Webhook Midtrans bebas CSRF
         $middleware->validateCsrfTokens(except: [
             'midtrans/webhook'
