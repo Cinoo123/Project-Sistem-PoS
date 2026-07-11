@@ -35,6 +35,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'midtrans/webhook'
         ]);
+
+        // 🌟 INI DIA YANG HILANG! Daftarkan kata kunci 'admin' agar rute mengenali satpam IsAdmin kamu
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\IsAdmin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         
@@ -57,3 +62,5 @@ if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) 
 }
 
 return $app;
+
+// Pemicu Update Git Vercel Sukses
