@@ -34,8 +34,7 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'checkEmail'])
 Route::get('/reset-password/{email}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [ForgotPasswordController::class, 'updatePassword'])->name('password.update');
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    // Alamat: domain-kamu.com/admin/dashboard
+Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->group(function () {
     Route::get('/dashboard', AdminDashboard::class)->name('admin.dashboard');
     
     // Alamat: domain-kamu.com/admin/menu
