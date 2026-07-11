@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\MenuManagement;
 
 // 1. Tampilan Pertama: Halaman Login Kasir
 Route::get('/', function () {
@@ -31,3 +33,11 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'checkEmail'])
 
 Route::get('/reset-password/{email}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [ForgotPasswordController::class, 'updatePassword'])->name('password.update');
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    // Alamat: domain-kamu.com/admin/dashboard
+    Route::get('/dashboard', AdminDashboard::class)->name('admin.dashboard');
+    
+    // Alamat: domain-kamu.com/admin/menu
+    Route::get('/menu', MenuManagement::class)->name('admin.menu');
+});
