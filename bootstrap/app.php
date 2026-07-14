@@ -60,10 +60,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
 if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) {
     $app->useStoragePath('/tmp');
 
-    // 🌟 PERBAIKAN UTAMA:
-    // Mengubah pemaksaan driver dari 'cookie' menjadi 'database' langsung di inti kode.
-    // Sekarang Laravel akan menyimpan session login kasir dengan aman di database Supabase Anda.
-    $app->make('config')->set('session.driver', 'database');
+    // UBAH TULISAN DI SINI: Ganti dari 'database' atau 'cookie' menjadi 'file'
+    $app->make('config')->set('session.driver', 'file');
 }
 
 return $app;
