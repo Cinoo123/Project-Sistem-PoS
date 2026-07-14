@@ -58,10 +58,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
 // [3] Alihkan jalur utama storage ke /tmp jika di Vercel
 if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) {
+    // KODE YANG SALAH KEMARIN SUDAH DIHAPUS DARI SINI
     $app->useStoragePath('/tmp');
-
-    // UBAH TULISAN DI SINI: Ganti dari 'database' atau 'cookie' menjadi 'file'
-    $app->make('config')->set('session.driver', 'file');
 }
 
 return $app;
