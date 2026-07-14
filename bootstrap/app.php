@@ -36,7 +36,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'midtrans/webhook'
         ]);
 
-        // 🌟 INI DIA YANG HILANG! Daftarkan kata kunci 'admin' agar rute mengenali satpam IsAdmin kamu
+        // Mendaftarkan kata kunci 'admin' agar rute mengenali satpam IsAdmin
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
         ]);
@@ -59,8 +59,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
 // [3] Alihkan jalur utama storage ke /tmp jika di Vercel
 if (getenv('VERCEL') === '1' || isset($_SERVER['VERCEL_URL']) || env('VERCEL')) {
     $app->useStoragePath('/tmp');
+
+    // 🌟 PERBAIKAN UTAMA (KUNCI EMAS):
+    // Paksa driver session ke 'cookie' langsung di level kode inti aplikasi.
+    // Ini menjamin Laravel mengabaikan cache build-time Vercel yang membandel pada driver 'file'.
+    $app->make('config')->set('session.driver', 'cookie');
 }
 
 return $app;
-
-// Pemicu Update Git Vercel Sukses
