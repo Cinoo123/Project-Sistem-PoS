@@ -27,15 +27,21 @@
             </div>
             <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-8">POS Terminal Station 01</p>
 
-            <form action="{{ route('pos.index') }}" method="GET" class="space-y-4">
-                
-                <div class="relative text-left">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-envelope text-sm"></i>
-                    </span>
-                    <input type="email" name="email" required 
-                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-[#e67e22] focus:ring-4 focus:ring-orange-500/10 transition-all text-slate-700 font-medium" 
-                        placeholder="Alamat email kasir...">
+            <form action="{{ route('login.submit') }}" method="POST" class="space-y-4">
+                @csrf <div class="space-y-1">
+                    <div class="relative text-left">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-envelope text-sm"></i>
+                        </span>
+                        <input type="email" name="email" value="{{ old('email') }}" required 
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border @error('email') border-red-500 focus:border-red-500 focus:ring-red-500/10 @else border-slate-200 focus:border-[#e67e22] focus:ring-orange-500/10 @enderror rounded-xl text-sm focus:outline-none focus:bg-white focus:ring-4 transition-all text-slate-700 font-medium" 
+                            placeholder="Alamat email kasir...">
+                    </div>
+                    @error('email')
+                        <p class="text-left text-xs font-bold text-red-500 pl-1">
+                            <i class="fa-solid fa-circle-exclamation mr-1"></i> {{ $message }}
+                        </p>
+                    @enderror
                 </div>
 
                 <div class="relative text-left">
@@ -55,7 +61,7 @@
         </div>
 
         <div class="bg-slate-50/80 px-8 py-5 border-t border-slate-100 text-center space-y-2">
-           <a href="/forgot-password" class="text-xs font-bold text-[#b87333] hover:text-[#d35400] hover:underline transition-all block">Lupa Kata Sandi?</a>
+            <a href="{{ route('password.request') }}" class="text-xs font-bold text-[#b87333] hover:text-[#d35400] hover:underline transition-all block">Lupa Kata Sandi?</a>
             <div class="border-b border-dashed border-slate-200 my-1"></div>
             <p class="text-[11px] text-slate-400 font-semibold tracking-wide">
                 <i class="fa-solid fa-headset mr-1 text-orange-400"></i> Butuh bantuan teknis? Hubungi IT Support

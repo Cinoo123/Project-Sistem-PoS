@@ -1,42 +1,73 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\MenuManagement;
 
-// 1. Tampilan Pertama: Halaman Login Kasir
-Route::get('/', function () {
-    return view('login');
-})->name('login');
-Route::get('/forgot-password', function () {
-    return view('forgot-password');
+/*
+|--------------------------------------------------------------------------
+| 1. RUTE UNTUK PENGUNJUNG / BELUM LOGIN (GUEST MULTIPLEX)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('guest')->group(function () {
+    // Jalur Logika Login Kasir
+    Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+
+    // Jalur Logika Lupa & Reset Password
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'checkEmail'])->name('password.email');
+    Route::get('/reset-password/{email}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'updatePassword'])->name('password.update');
 });
 
-Route::get('/pos', [OrderController::class, 'index'])->name('pos.index');
-Route::post('/order/payment', [OrderController::class, 'prosesPembayaran'])->name('order.payment');
-Route::post('/order/store', [OrderController::class, 'store'])->name('order.store');
-Route::get('/report', [ReportController::class, 'index'])->name('report');
-Route::post('/order/store', [OrderController::class, 'store'])->name('order.store');
-Route::post('/order/kitchen', [OrderController::class, 'sendToKitchen'])->name('order.kitchen');
-Route::post('/midtrans/webhook', [OrderController::class, 'handleWebhook']);
-Route::get('/order/status/{order_id}', [OrderController::class, 'checkOrderStatus']);
-Route::get('/register/check', [OrderController::class, 'checkRegister']);
-Route::post('/register/open', [OrderController::class, 'openRegister']);
-Route::get('/register/preview', [OrderController::class, 'previewCloseRegister']);
-Route::post('/register/close', [OrderController::class, 'closeRegister']);
-Route::get('/report', [ReportController::class, 'index'])->name('report');
-Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
-Route::post('/forgot-password', [ForgotPasswordController::class, 'checkEmail'])->name('password.email');
+/*
+|--------------------------------------------------------------------------
+| 2. RUTE UNTUK KASIR YANG SUDAH LOGIN (AUTH REQUIRED)
+|--------------------------------------------------------------------------
+| Semua rute operasional POS dimasukkan ke sini agar tidak bisa di-bypass lewat URL!
+*/
+Route::middleware('auth')->group(function () {
+    // Tombol Keluar Sistem
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/reset-password/{email}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('/reset-password', [ForgotPasswordController::class, 'updatePassword'])->name('password.update');
+    // Halaman Utama Aplikasi Kasir (POS)
+    Route::get('/pos', [OrderController::class, 'index'])->name('pos.index');
+    
+    // Logika Pemesanan & Pembayaran
+    Route::post('/order/store', [OrderController::class, 'store'])->name('order.store');
+    Route::post('/order/payment', [OrderController::class, 'prosesPembayaran'])->name('order.payment');
+    Route::post('/order/kitchen', [OrderController::class, 'sendToKitchen'])->name('order.kitchen');
+    Route::get('/order/status/{order_id}', [OrderController::class, 'checkOrderStatus']);
+    
+    // Manajemen Buka/Tutup Kas Register Uang Uang Masuk
+    Route::get('/register/check', [OrderController::class, 'checkRegister']);
+    Route::post('/register/open', [OrderController::class, 'openRegister']);
+    Route::get('/register/preview', [OrderController::class, 'previewCloseRegister']);
+    Route::post('/register/close', [OrderController::class, 'closeRegister']);
 
+    // Halaman Laporan Penjualan Kasir
+    Route::get('/report', [ReportController::class, 'index'])->name('report');
+});
+
+/*
+|--------------------------------------------------------------------------
+| 3. RUTE KHUSUS MANAGER / ADMIN (ROLE MANAGEMENT)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->group(function () {
     Route::get('/dashboard', AdminDashboard::class)->name('admin.dashboard');
-    
-    // Alamat: domain-kamu.com/admin/menu
     Route::get('/menu', MenuManagement::class)->name('admin.menu');
 });
+
+/*
+|--------------------------------------------------------------------------
+| 4. RUTE PUBLIK / API EXTERNAL (WEBHOOK)
+|--------------------------------------------------------------------------
+| Diletakkan di luar karena dipanggil otomatis oleh server Midtrans secara online
+*/
+Route::post('/midtrans/webhook', [OrderController::class, 'handleWebhook']);
