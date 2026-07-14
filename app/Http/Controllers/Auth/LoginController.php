@@ -10,13 +10,17 @@ class LoginController extends Controller
 {
     // Menampilkan halaman login
     public function showLoginForm()
-    {
-        if (Auth::check()) {
-            return redirect('/pos'); // Jika sudah login, langsung ke kasir
-        }
-        return view('login');
+{
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        return redirect('/pos');
     }
-
+    
+    // Memberikan instruksi ke browser agar tidak me-ngcache halaman login ini
+    return response()
+        ->view('login')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache');
+}
     // Memproses data login dari form (Validasi Backend)
     public function login(Request $request)
     {

@@ -18,6 +18,11 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
+    // PERBAIKAN UTAMA: Rute Penyelamat jika Laravel otomatis mengarah ke URL /login
+    Route::get('/login', function() {
+        return redirect('/');
+    });
+
     // Jalur Logika Lupa & Reset Password
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'checkEmail'])->name('password.email');
