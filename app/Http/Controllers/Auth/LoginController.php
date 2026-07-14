@@ -8,47 +8,49 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // Menampilkan halaman login
+    // 1. Menampilkan Halaman Login (Anti-Cache)
     public function showLoginForm()
-{
-    if (\Illuminate\Support\Facades\Auth::check()) {
-        return redirect('/pos');
+    {
+        if (Auth::check()) {
+            return redirect('/pos'); // Jika sudah login, langsung lempar ke kasir
+        }
+        
+        // PERBAIKAN: Memaksa browser kasir TIDAK MENYIMPAN cache halaman login
+        return response()
+            ->view('login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
-    
-    // Memberikan instruksi ke browser agar tidak me-ngcache halaman login ini
-    return response()
-        ->view('login')
-        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-        ->header('Pragma', 'no-cache');
-}
-    // Memproses data login dari form (Validasi Backend)
+
+    // 2. Logika Validasi Masuk Akun
     public function login(Request $request)
     {
-        // 1. Validasi format input di backend
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        // 2. Cek kecocokan data ke database (Password otomatis didekripsi aman oleh Laravel)
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Mencegah serangan Session Fixation
+            $request->session()->regenerate(); // Mengacak session ID baru demi keamanan
 
-            return redirect()->intended('/pos'); // Redirect ke halaman kasir
+            return redirect()->intended('/pos');
         }
 
-        // 3. Jika salah, kembalikan ke halaman login dengan pesan error
         return back()->withErrors([
             'email' => 'Email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');
     }
 
-    // Logika Logout
+    // 3. Logika Keluar Sistem (Logout Total)
     public function logout(Request $request)
     {
         Auth::logout();
+        
+        // Hapus dan hancurkan session lama kasir agar tidak menyangkut di serverless Vercel
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
+        // Kembalikan ke halaman login awal
         return redirect('/');
     }
 }
